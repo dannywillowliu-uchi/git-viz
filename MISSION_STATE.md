@@ -40,22 +40,24 @@ TESTING:
 ## Completed
 - [x] 82fbe50d (2026-02-18T23:38:43.292786+00:00) -- Created base HTML shell with dark theme layout, CSS grid, responsive breakpoints, loading overlay, a (files: src/git_viz/index.html)
 - [x] 127bd601 (2026-02-18T23:46:28.467882+00:00) -- Created tests/conftest.py with 6 pytest fixtures: temp_git_repo factory, empty_repo, single_commit_r (files: tests/conftest.py)
-- [x] 93c2eb12 (2026-02-18T23:46:12.884988+00:00) -- Implemented git_ops.py with get_repo_metadata, get_commits, get_tree, get_activity using GitPython.  (files: src/git_viz/git_ops.py, tests/conftest.py, tests/test_git_ops.py)
+- [x] 93c2eb12 (2026-02-18T23:50:01.464614+00:00) -- Implemented git_ops.py with get_repo_metadata, get_commits, get_tree, get_activity using GitPython.  (files: src/git_viz/git_ops.py, tests/conftest.py, tests/test_git_ops.py)
 - [x] 82fbe50d (2026-02-18T23:38:43.292786+00:00) -- Created base HTML shell with dark theme layout, CSS grid, responsive breakpoints, loading overlay, a (files: src/git_viz/index.html, tests/test_api.py)
 - [x] 2e1f01bf (2026-02-18T23:40:25.464208+00:00) -- Created src/git_viz/app.py with FastAPI app defining all 5 routes (/, /api/repo, /api/commits, /api/ (files: src/git_viz/app.py)
-- [x] 93c2eb12 (2026-02-18T23:46:12.884988+00:00) -- Implemented git_ops.py with get_repo_metadata, get_commits, get_tree, get_activity using GitPython.  (files: src/git_viz/git_ops.py, tests/conftest.py, tests/test_git_ops.py)
+- [x] 93c2eb12 (2026-02-18T23:50:01.464614+00:00) -- Implemented git_ops.py with get_repo_metadata, get_commits, get_tree, get_activity using GitPython.  (files: src/git_viz/git_ops.py, tests/conftest.py, tests/test_git_ops.py)
 - [x] 127bd601 (2026-02-18T23:46:28.467882+00:00) -- Created tests/conftest.py with 6 pytest fixtures (factory, empty_repo, single_commit_repo, multi_bra (files: tests/conftest.py, tests/test_api.py)
 - [x] b8089c6c (2026-02-18T23:43:21.691804+00:00) -- Implemented git_ops.py with get_repo_metadata, get_commits, get_tree, get_activity using GitPython.  (files: src/git_viz/git_ops.py, tests/conftest.py, tests/test_git_ops.py, pyproject.toml)
-- [x] 72854602 (2026-02-18T23:44:52.621572+00:00) -- Wrote 36 comprehensive API endpoint tests covering all 5 routes with error handling, JSON structure  (files: tests/test_api.py, tests/conftest.py, src/git_viz/git_ops.py, src/git_viz/app.py)
-- [x] 93c2eb12 (2026-02-18T23:46:12.884988+00:00) -- Implemented src/git_viz/git_ops.py with all 4 functions (get_repo_metadata, get_commits, get_tree, g (files: src/git_viz/git_ops.py, tests/conftest.py, tests/test_git_ops.py)
+- [x] 72854602 (2026-02-18T23:49:35.132911+00:00) -- Wrote 36 comprehensive API endpoint tests covering all 5 routes with error handling, JSON structure  (files: tests/test_api.py, tests/conftest.py, src/git_viz/git_ops.py, src/git_viz/app.py)
+- [x] 93c2eb12 (2026-02-18T23:50:01.464614+00:00) -- Implemented src/git_viz/git_ops.py with all 4 functions (get_repo_metadata, get_commits, get_tree, g (files: src/git_viz/git_ops.py, tests/conftest.py, tests/test_git_ops.py)
 - [x] 127bd601 (2026-02-18T23:46:28.467882+00:00) -- Updated tests/conftest.py with 7 comprehensive fixtures: temp_git_repo factory with author support,  (files: tests/conftest.py)
 - [x] 46323829 (2026-02-18T23:46:52.947893+00:00) -- Created FastAPI app with all 5 routes, proper error handling for invalid paths/repos/commits, __init (files: src/git_viz/app.py, src/git_viz/__init__.py, src/git_viz/git_ops.py, tests/test_api.py, tests/conftest.py)
 - [x] 4f805cf3 (2026-02-18T23:48:39.134489+00:00) -- Wrote 25 comprehensive API endpoint tests in test_api.py using httpx AsyncClient with ASGITransport, (files: tests/test_api.py)
+- [x] b91a9535 (2026-02-18T23:49:06.232264+00:00) -- Wrote 39 comprehensive unit tests for git_ops module covering all 4 functions across empty/single/mu (files: tests/test_git_ops.py)
+- [x] 72854602 (2026-02-18T23:49:35.132911+00:00) -- Added 35 API endpoint tests to tests/test_api.py covering all 5 routes (GET /, /api/repo, /api/commi (files: tests/test_api.py)
+- [x] 93c2eb12 (2026-02-18T23:50:01.464614+00:00) -- git_ops.py already fully implemented with all 4 functions (get_repo_metadata, get_commits, get_tree,
 
 ## In-Flight (DO NOT duplicate)
-- [ ] 72854602 -- Write API endpoint tests (files: tests/test_api.py)
-- [ ] b91a9535 -- Write git_ops unit tests (files: tests/test_git_ops.py)
 - [ ] 46323829 -- Create FastAPI app with all API routes (files: src/git_viz/app.py, src/git_viz/__init__.py)
+- [ ] 4f805cf3 -- Write comprehensive API endpoint tests (files: tests/test_api.py)
 
 ## Files Modified
 pyproject.toml, src/git_viz/__init__.py, src/git_viz/app.py, src/git_viz/git_ops.py, src/git_viz/index.html, tests/conftest.py, tests/test_api.py, tests/test_git_ops.py
@@ -69,3 +71,5 @@ Do NOT re-target files in the 'Files Modified' list unless fixing a failure.
 - 2026-02-18T23:40:25.464208+00:00 | 2e1f01bf merged (commit: 7876083) -- Created src/git_viz/app.py with FastAPI app defining all 5 routes (/, /api/repo,
 - 2026-02-18T23:43:21.691804+00:00 | b8089c6c merged (commit: c75618d) -- Implemented git_ops.py with get_repo_metadata, get_commits, get_tree, get_activi
 - 2026-02-18T23:46:28.467882+00:00 | 127bd601 merged (commit: 6afa3eb) -- Updated tests/conftest.py with 7 comprehensive fixtures: temp_git_repo factory w
+- 2026-02-18T23:49:06.232264+00:00 | b91a9535 merged (commit: 4f6f169) -- Wrote 39 comprehensive unit tests for git_ops module covering all 4 functions ac
+- 2026-02-18T23:50:01.464614+00:00 | 93c2eb12 merged (commit: no-commit) -- git_ops.py already fully implemented with all 4 functions (get_repo_metadata, ge
