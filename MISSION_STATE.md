@@ -38,17 +38,21 @@ TESTING:
 
 
 ## Completed
-- [x] 82fbe50d (2026-02-18T23:36:47.362164+00:00) -- Created base HTML shell with dark theme layout, CSS grid, responsive breakpoints, loading overlay, a (files: src/git_viz/index.html)
+- [x] 82fbe50d (2026-02-18T23:38:43.292786+00:00) -- Created base HTML shell with dark theme layout, CSS grid, responsive breakpoints, loading overlay, a (files: src/git_viz/index.html)
 - [x] 127bd601 (2026-02-18T23:37:12.083512+00:00) -- Created tests/conftest.py with 6 pytest fixtures: temp_git_repo factory, empty_repo, single_commit_r (files: tests/conftest.py)
 - [x] 93c2eb12 (2026-02-18T23:38:12.504892+00:00) -- Implemented git_ops.py with get_repo_metadata, get_commits, get_tree, get_activity using GitPython.  (files: src/git_viz/git_ops.py, tests/conftest.py, tests/test_git_ops.py)
+- [x] 82fbe50d (2026-02-18T23:38:43.292786+00:00) -- Created base HTML shell with dark theme layout, CSS grid, responsive breakpoints, loading overlay, a (files: src/git_viz/index.html, tests/test_api.py)
 
 ## In-Flight (DO NOT duplicate)
-- [ ] 82fbe50d -- Create base HTML shell with dark theme layout and CSS (files: src/git_viz/index.html)
 - [ ] 127bd601 -- Create pytest fixtures in conftest.py (files: tests/conftest.py)
+- [ ] 93c2eb12 -- Implement git repository operations module (files: src/git_viz/git_ops.py)
 
 ## Files Modified
-src/git_viz/git_ops.py, src/git_viz/index.html, tests/conftest.py, tests/test_git_ops.py
+src/git_viz/git_ops.py, src/git_viz/index.html, tests/conftest.py, tests/test_api.py, tests/test_git_ops.py
 
 ## Remaining
 The planner should focus on what hasn't been done yet.
 Do NOT re-target files in the 'Files Modified' list unless fixing a failure.
+
+## Changelog
+- 2026-02-18T23:38:43.292786+00:00 | 82fbe50d merged (commit: b1d4179) -- Created base HTML shell with dark theme layout, CSS grid, responsive breakpoints
