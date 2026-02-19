@@ -38,3 +38,34 @@ def test_index_html_is_self_contained():
 	content = HTML_PATH.read_text()
 	assert "<style>" in content, "CSS must be inline"
 	assert "<script>" in content, "JS must be inline"
+
+
+def test_api_repo_default_path(client):
+	resp = client.get("/api/repo")
+	assert resp.status_code == 200
+	data = resp.json()
+	assert "name" in data
+	assert "branch" in data
+
+
+def test_api_commits_default_path(client):
+	resp = client.get("/api/commits")
+	assert resp.status_code == 200
+	data = resp.json()
+	assert isinstance(data, list)
+	assert len(data) > 0
+
+
+def test_api_tree_default_path(client):
+	resp = client.get("/api/tree")
+	assert resp.status_code == 200
+	data = resp.json()
+	assert isinstance(data, dict)
+	assert "files" in data
+
+
+def test_api_activity_default_path(client):
+	resp = client.get("/api/activity")
+	assert resp.status_code == 200
+	data = resp.json()
+	assert "authors" in data or "weekly" in data or isinstance(data, dict)
