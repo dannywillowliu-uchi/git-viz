@@ -409,10 +409,296 @@
 	</div>
 
 	<script>
-		// Hide loading overlay once page is ready
-		window.addEventListener("load", function() {
-			document.getElementById("loading-overlay").classList.add("hidden");
+	(async function() {
+		const EXT_COLORS = {
+			py: "#3572A5", js: "#f1e05a", ts: "#3178c6", html: "#e34c26",
+			css: "#563d7c", json: "#292929", md: "#083fa1", toml: "#9c4221",
+			yaml: "#cb171e", yml: "#cb171e", txt: "#aaa", lock: "#555",
+			cfg: "#888", ini: "#888", sh: "#89e051", gitignore: "#666",
+		};
+		const FALLBACK_COLOR = "#6e7681";
+
+		function extColor(filename) {
+			const ext = filename.split(".").pop().toLowerCase();
+			return EXT_COLORS[ext] || FALLBACK_COLOR;
+		}
+
+		// State
+		let commits = [], tree = [], activity = {}, repoMeta = {};
+		let currentIdx = 0, playing = false, playTimer = null;
+		let activeAuthors = new Set(), fileFilter = "";
+		let simulation, svg, linkGroup, nodeGroup, tooltip;
+
+		// Fetch all data in parallel
+		try {
+			const [repoRes, commitsRes, treeRes, activityRes] = await Promise.all([
+				fetch("/api/repo").then(r => r.json()),
+				fetch("/api/commits").then(r => r.json()),
+				fetch("/api/tree").then(r => r.json()),
+				fetch("/api/activity").then(r => r.json()),
+			]);
+			repoMeta = repoRes;
+			commits = commitsRes.reverse(); // oldest first
+			// Convert tree files dict {path: {type, size}} to array
+			tree = Object.entries(treeRes.files || {}).map(([path, info]) => ({
+				path, type: info.type, size: info.size,
+			}));
+			activity = activityRes;
+		} catch (e) {
+			console.error("Failed to load data:", e);
+			document.querySelector(".loading-text").textContent = "Failed to load repository data";
+			return;
+		}
+
+		// Populate sidebar
+		document.querySelector(".repo-name").textContent =
+			`${repoMeta.name} (${repoMeta.branch}) - ${repoMeta.commit_count} commits`;
+
+		// Contributors
+		const contribDiv = document.querySelector(".contributor-list");
+		// contributors is [{name, commits}]; commits_per_author is {name: count} dict
+		const authors = repoMeta.contributors || Object.entries(activity.commits_per_author || {}).map(
+			([name, commits]) => ({name, commits})
+		);
+		const authorColors = {};
+		const palette = ["#e94560","#0f3460","#53d8fb","#f7b731","#a55eea","#26de81","#fc5c65","#45aaf2"];
+		authors.forEach((a, i) => {
+			const name = a.name || a.author;
+			authorColors[name] = palette[i % palette.length];
+			activeAuthors.add(name);
 		});
+
+		contribDiv.innerHTML = "<h2>Contributors</h2>" + authors.map(a => {
+			const name = a.name || a.author;
+			const count = a.commits;
+			return `<div class="contrib-item" data-author="${name}" style="
+				padding:4px 8px;margin:2px 0;border-radius:4px;cursor:pointer;
+				font-size:13px;display:flex;justify-content:space-between;
+				background:${authorColors[name]}22;border-left:3px solid ${authorColors[name]}">
+				<span>${name}</span><span style="color:var(--text-secondary)">${count}</span>
+			</div>`;
+		}).join("");
+
+		contribDiv.querySelectorAll(".contrib-item").forEach(el => {
+			el.addEventListener("click", () => {
+				const author = el.dataset.author;
+				if (activeAuthors.has(author)) {
+					activeAuthors.delete(author);
+					el.style.opacity = "0.3";
+				} else {
+					activeAuthors.add(author);
+					el.style.opacity = "1";
+				}
+				updateGraph();
+			});
+		});
+
+		// File search
+		document.querySelector(".search-input").addEventListener("input", e => {
+			fileFilter = e.target.value.toLowerCase();
+			updateGraph();
+		});
+
+		// Activity chart
+		const chartArea = document.querySelector("#activity-chart .chart-area");
+		const weeks = activity.commits_over_time || [];
+		if (weeks.length > 0) {
+			chartArea.innerHTML = "";
+			const maxCount = Math.max(...weeks.map(w => w.count), 1);
+			const barW = Math.max(2, Math.floor((chartArea.clientWidth - 4) / weeks.length) - 1);
+			const chartH = chartArea.clientHeight - 4;
+			weeks.forEach(w => {
+				const h = Math.max(2, (w.count / maxCount) * chartH);
+				const bar = document.createElement("div");
+				bar.title = `${w.week}: ${w.count} commits`;
+				bar.style.cssText = `display:inline-block;width:${barW}px;height:${h}px;
+					background:var(--accent);margin:0 0.5px;vertical-align:bottom;border-radius:1px 1px 0 0;
+					opacity:0.7;transition:opacity 0.2s`;
+				bar.addEventListener("mouseenter", () => bar.style.opacity = "1");
+				bar.addEventListener("mouseleave", () => bar.style.opacity = "0.7");
+				chartArea.appendChild(bar);
+			});
+			chartArea.style.display = "flex";
+			chartArea.style.alignItems = "flex-end";
+			chartArea.style.justifyContent = "center";
+		}
+
+		// Timeline
+		const slider = document.querySelector(".timeline-slider");
+		const commitInfo = document.querySelector(".commit-info");
+		const playBtn = document.querySelector(".btn-play");
+
+		slider.max = Math.max(0, commits.length - 1);
+		slider.value = commits.length - 1;
+		currentIdx = commits.length - 1;
+
+		slider.addEventListener("input", () => {
+			currentIdx = parseInt(slider.value);
+			updateGraph();
+			updateCommitInfo();
+		});
+
+		playBtn.addEventListener("click", () => {
+			playing = !playing;
+			playBtn.innerHTML = playing ? "&#9646;&#9646;" : "&#9654;";
+			if (playing) {
+				if (currentIdx >= commits.length - 1) currentIdx = 0;
+				playTimer = setInterval(() => {
+					currentIdx++;
+					if (currentIdx >= commits.length) {
+						currentIdx = commits.length - 1;
+						playing = false;
+						playBtn.innerHTML = "&#9654;";
+						clearInterval(playTimer);
+					}
+					slider.value = currentIdx;
+					updateGraph();
+					updateCommitInfo();
+				}, 200);
+			} else {
+				clearInterval(playTimer);
+			}
+		});
+
+		function updateCommitInfo() {
+			if (commits.length === 0) return;
+			const c = commits[currentIdx];
+			const hash = c.hash.substring(0, 7);
+			const date = new Date(c.date).toLocaleDateString();
+			commitInfo.textContent = `${hash} - ${c.author} - ${date} - ${c.message}`;
+		}
+
+		// D3 Force Graph
+		const graphEl = document.getElementById("graph-container");
+		graphEl.querySelector(".placeholder")?.remove();
+
+		svg = d3.select(graphEl).append("svg");
+		const g = svg.append("g");
+
+		// Zoom
+		const zoom = d3.zoom().scaleExtent([0.1, 8]).on("zoom", e => {
+			g.attr("transform", e.transform);
+		});
+		svg.call(zoom);
+
+		linkGroup = g.append("g").attr("class", "links");
+		nodeGroup = g.append("g").attr("class", "nodes");
+
+		// Tooltip
+		tooltip = d3.select(graphEl).append("div").style("position", "absolute")
+			.style("background", "var(--bg-tertiary)").style("color", "var(--text-primary)")
+			.style("padding", "6px 10px").style("border-radius", "4px")
+			.style("font-size", "12px").style("pointer-events", "none")
+			.style("opacity", 0).style("border", "1px solid var(--border)")
+			.style("z-index", 100);
+
+		simulation = d3.forceSimulation()
+			.force("link", d3.forceLink().id(d => d.id).distance(40).strength(0.3))
+			.force("charge", d3.forceManyBody().strength(-60))
+			.force("center", d3.forceCenter(graphEl.clientWidth / 2, graphEl.clientHeight / 2))
+			.force("collision", d3.forceCollide().radius(d => d.r + 2));
+
+		function updateGraph() {
+			// Gather files up to currentIdx
+			const visibleCommits = commits.slice(0, currentIdx + 1)
+				.filter(c => activeAuthors.has(c.author));
+
+			const fileSet = new Set();
+			const coModified = new Map(); // "fileA|fileB" -> count
+
+			visibleCommits.forEach(c => {
+				const files = (c.files || [])
+					.map(f => f.path)
+					.filter(p => !fileFilter || p.toLowerCase().includes(fileFilter));
+				files.forEach(f => fileSet.add(f));
+				// Co-modification edges
+				for (let i = 0; i < files.length; i++) {
+					for (let j = i + 1; j < files.length; j++) {
+						const key = [files[i], files[j]].sort().join("|");
+						coModified.set(key, (coModified.get(key) || 0) + 1);
+					}
+				}
+			});
+
+			// Build nodes from tree (only files that appear in commits)
+			const treeFiles = tree.filter(f => fileSet.has(f.path));
+			const nodes = treeFiles.map(f => ({
+				id: f.path,
+				r: Math.max(4, Math.log2((f.size || 1) + 1) * 3),
+				color: extColor(f.path),
+				size: f.size || 0,
+			}));
+
+			// If tree is empty, build nodes from commit file paths
+			if (nodes.length === 0) {
+				fileSet.forEach(path => {
+					nodes.push({
+						id: path,
+						r: 6,
+						color: extColor(path),
+						size: 0,
+					});
+				});
+			}
+
+			const nodeIds = new Set(nodes.map(n => n.id));
+			const links = [];
+			coModified.forEach((count, key) => {
+				const [a, b] = key.split("|");
+				if (nodeIds.has(a) && nodeIds.has(b)) {
+					links.push({ source: a, target: b, value: count });
+				}
+			});
+
+			// Update links
+			const link = linkGroup.selectAll("line").data(links, d => d.source + "|" + d.target);
+			link.exit().transition().duration(200).style("opacity", 0).remove();
+			const linkEnter = link.enter().append("line")
+				.attr("stroke", "var(--border)").attr("stroke-opacity", 0.4)
+				.attr("stroke-width", d => Math.min(3, Math.sqrt(d.value)));
+			const linkMerge = linkEnter.merge(link);
+
+			// Update nodes
+			const node = nodeGroup.selectAll("circle").data(nodes, d => d.id);
+			node.exit().transition().duration(200).attr("r", 0).remove();
+			const nodeEnter = node.enter().append("circle")
+				.attr("r", 0)
+				.attr("fill", d => d.color)
+				.attr("stroke", "#fff").attr("stroke-width", 0.5)
+				.style("cursor", "pointer")
+				.call(d3.drag()
+					.on("start", (e, d) => { if (!e.active) simulation.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y; })
+					.on("drag", (e, d) => { d.fx = e.x; d.fy = e.y; })
+					.on("end", (e, d) => { if (!e.active) simulation.alphaTarget(0); d.fx = null; d.fy = null; })
+				)
+				.on("mouseover", (e, d) => {
+					tooltip.style("opacity", 1).html(`<b>${d.id}</b><br>${d.size} bytes`);
+				})
+				.on("mousemove", e => {
+					tooltip.style("left", (e.offsetX + 12) + "px").style("top", (e.offsetY - 10) + "px");
+				})
+				.on("mouseout", () => tooltip.style("opacity", 0));
+
+			nodeEnter.transition().duration(300).attr("r", d => d.r);
+			const nodeMerge = nodeEnter.merge(node).attr("fill", d => d.color);
+
+			// Restart simulation
+			simulation.nodes(nodes).on("tick", () => {
+				linkMerge.attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+					.attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+				nodeMerge.attr("cx", d => d.x).attr("cy", d => d.y);
+			});
+			simulation.force("link").links(links);
+			simulation.alpha(0.5).restart();
+		}
+
+		// Initial render
+		updateGraph();
+		updateCommitInfo();
+
+		// Hide loading
+		document.getElementById("loading-overlay").classList.add("hidden");
+	})();
 	</script>
 </body>
 </html>
