@@ -39,18 +39,19 @@ tests/             # All tests
 
 ## Frontend Requirements
 
-- Force-directed graph: files as nodes, directories as clusters, edges connect co-modified files
-- Node size = file size (log scale), node color = file extension
-- Timeline slider with play/pause for animated commit playback
-- Sidebar: contributor list with filtering, file path search
-- Activity sparkline/bar chart
+- Tree/dendrogram layout: each commit is a node, branch structure forms the tree hierarchy
+- Nodes display: short hash, author, date, summary of key changes
+- Color-code nodes by author, size/weight by change magnitude
+- Click commit node for full details (message, files, diff stats)
+- Highlight path from selected commit to HEAD
+- Zoom/pan, search by message/author, filter by date range, collapse/expand subtrees
 - Dark theme, smooth CSS transitions, responsive layout
-- Must handle repos with 1000+ commits without freezing
+- Must handle repos with 500+ commits without freezing
 
 ## Architecture Constraints
 
 - Backend serves JSON, frontend fetches on load and caches client-side
-- No WebSocket -- load all data upfront, animate client-side
+- No WebSocket -- load all data upfront, render client-side
 - Frontend HTML must be fully self-contained (inline styles, inline JS, CDN for D3 only)
 - Keep git operations efficient -- avoid loading full diffs for large repos
 
