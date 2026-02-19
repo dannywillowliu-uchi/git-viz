@@ -1,6 +1,6 @@
 [target]
 name = "git-viz"
-path = "~/personal_projects/git-viz"
+path = "/Users/dannyliu/personal_projects/git-viz"
 branch = "main"
 objective = """
 Build a browser-based git repository visualizer with these components:
