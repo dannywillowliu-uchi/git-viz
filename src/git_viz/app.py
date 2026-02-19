@@ -8,6 +8,7 @@ from . import git_ops
 app = FastAPI(title="git-viz")
 
 HTML_PATH = Path(__file__).resolve().parent / "index.html"
+DEFAULT_REPO_PATH = Path(__file__).resolve().parent.parent.parent
 
 
 @app.get("/")
@@ -17,7 +18,7 @@ async def index():
 
 def _resolve_repo_path(path: str | None) -> Path:
 	if not path:
-		raise HTTPException(status_code=400, detail="Missing required query parameter: path")
+		return DEFAULT_REPO_PATH
 	resolved = Path(path).expanduser().resolve()
 	if not resolved.exists():
 		raise HTTPException(status_code=404, detail=f"Path does not exist: {path}")
