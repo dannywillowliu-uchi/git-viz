@@ -5,11 +5,15 @@ branch = "main"
 objective = """
 Build a browser-based git repository visualizer with these components:
 
+DEFAULT BEHAVIOR:
+- When no repo path is specified, the app should visualize its own repository (the git-viz project itself at ~/personal_projects/git-viz)
+- All API endpoints should default to the git-viz repo path when the `path` query parameter is omitted
+
 BACKEND (FastAPI):
-1. GET /api/repo?path=<path> -- Accept a local repo path, return repo metadata (name, branch, commit count, contributors)
-2. GET /api/commits?path=<path>&limit=500 -- Return commit history: hash, author, date, message, files changed, insertions, deletions
-3. GET /api/tree?path=<path>&commit=<hash> -- Return file tree at a given commit with file sizes
-4. GET /api/activity?path=<path> -- Return contributor activity data: commits per author, commits over time (weekly buckets)
+1. GET /api/repo?path=<path> -- Accept a local repo path, return repo metadata (name, branch, commit count, contributors). Default path: this repo.
+2. GET /api/commits?path=<path>&limit=500 -- Return commit history: hash, author, date, message, files changed, insertions, deletions. Default path: this repo.
+3. GET /api/tree?path=<path>&commit=<hash> -- Return file tree at a given commit with file sizes. Default path: this repo.
+4. GET /api/activity?path=<path> -- Return contributor activity data: commits per author, commits over time (weekly buckets). Default path: this repo.
 5. Serve the frontend HTML at GET /
 
 FRONTEND (single self-contained HTML file with inline CSS/JS):
@@ -28,6 +32,7 @@ FRONTEND (single self-contained HTML file with inline CSS/JS):
    - Filter by file path (search box)
 4. Activity chart: small sparkline or bar chart showing commits over time
 5. Dark theme, smooth CSS transitions, responsive layout
+6. On load, fetch data without specifying a path (uses default = this repo)
 
 ARCHITECTURE:
 - Backend serves JSON, frontend fetches on load and caches
@@ -39,6 +44,7 @@ TESTING:
 - Backend tests using httpx TestClient against a temp git repo fixture
 - Test each endpoint returns correct structure
 - Test with empty repo, single-commit repo, multi-branch repo
+- Test that endpoints work without path parameter (default to self)
 """
 
 [target.verification]
